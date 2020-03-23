@@ -8,11 +8,13 @@ import java.net.*;
 
 public class GUI {
 
-	int frameHeight = 394;
-	int frameWidth = 328;
-	int gameBoardSize = 296;
+	int frameHeight = 537; //394 for 4, 465 for 5, meaning 73 approx per tile,
+	int frameWidth = 470; //328 for 4, 400 for 5, meaning 73 approx per tile,
+	int gameBoardSize = 296; //296
 	int marginSize = 16;
 	int highScore;
+	int gameRows = 4;
+	int gameColumns = 4;
 	
 	Color backgroundColor = new Color(255, 255, 120);
 	Hashtable<Integer, ImageIcon> numberTiles;
@@ -27,20 +29,20 @@ public class GUI {
 	JLabel highScoreLabel;
 	
 	public GUI() {
-		game = new Game();
-		this.frame = new MyFrame();
+		game = new Game(this.gameRows,this.gameColumns);
+		this.frame = new MyFrame(); 
 		frame.setFocusable(true);
 		frame.setResizable(false);
 		frame.addKeyListener(new MyFrame());
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		loadNumberTiles();
+		loadNumberTiles(); //initialize the tiles in a hashSet
 
 		gb = new GameBoard();
 		gb.setFocusable(true);
 		// North Panel
 		JPanel northPanel = new JPanel();
 		northPanel.setLayout(new GridLayout());
-		northPanel.setPreferredSize(new Dimension(frameWidth, 82));
+		northPanel.setPreferredSize(new Dimension(calculateGameWidth(), 82));
 
 		JLabel gameLabel = new JLabel("2048", SwingConstants.CENTER);
 		gameLabel.setFont(new Font("Serif", Font.BOLD, 20));
@@ -60,7 +62,7 @@ public class GUI {
 		eastBuffer.setBackground(backgroundColor);
 		// South Panel
 		JPanel southBuffer = new JPanel();
-		southBuffer.setPreferredSize(new Dimension(frameWidth, marginSize));
+		southBuffer.setPreferredSize(new Dimension(calculateGameWidth(), marginSize));
 		southBuffer.setBackground(backgroundColor);
 
 		// Add Panels to Frame
@@ -70,9 +72,17 @@ public class GUI {
 		frame.getContentPane().add(southBuffer, BorderLayout.SOUTH);
 		frame.getContentPane().add(gb, BorderLayout.CENTER);
 
-		frame.getContentPane().setPreferredSize(new Dimension(frameWidth, frameHeight));
+		frame.getContentPane().setPreferredSize(new Dimension(calculateGameWidth(), calculateGameHeight()));
 		frame.pack();
 		frame.setVisible(true);
+	}
+	
+	private int calculateGameWidth() {
+		return 328 + 71 * (this.gameColumns - 4);
+	}
+	
+	private int calculateGameHeight() {
+		return 394 + 71 *(this.gameRows - 4);
 	}
 
 	private void loadNumberTiles() {
@@ -112,12 +122,12 @@ public class GUI {
 			g.setColor(new Color(20, 20, 20));
 			g.fillRect(0, 0, this.getWidth(), this.getHeight());
 			int[][] board = game.getGameBoard();
-			for (int y = 1; y < 5; y++) {
-				for (int x = 1; x < 5; x++) {
-					int X = (8 * x) + (64 * (x - 1));
-					int Y = (8 * y) + (64 * (y - 1));
+			for (int y = 0; y < board.length; y++) {
+				for (int x = 0; x < board[y].length; x++) {
+					int X = (8 * (x + 1)) + (64 * x);
+					int Y = (8 * (y + 1)) + (64 * y);
 
-					int thisNumber = board[y - 1][x - 1];
+					int thisNumber = board[y][x];
 
 					if (numberTiles.containsKey(thisNumber)) {
 						ImageIcon thisTile = numberTiles.get(thisNumber);
@@ -160,54 +170,39 @@ public class GUI {
 	}
 
 	class MyFrame extends JFrame implements KeyListener {
-
+		int cols = game.getColumns();
+		int rows = game.getRows();
+		
 		@Override
 		public void keyPressed(KeyEvent e) {
 
 		}
-
+		private void manageGame(Game game, GameBoard gb) {
+			game.SpawnNumber();
+			game.checkState();
+			updateScore();
+			gb.repaint();
+		}
 		@Override
 		public void keyReleased(KeyEvent e) {
 			int key = e.getKeyCode();
 			if (game.getGameState() == GameState.CONTINUE) {
 				switch (key) {
-				case KeyEvent.VK_UP:
-
+				case (KeyEvent.VK_UP):
 					game.combineGridVertical(true);
-					game.SpawnNumber();
-					game.checkState();
-					updateScore();
-					gb.repaint();
-
 					break;
 				case KeyEvent.VK_DOWN:
-
 					game.combineGridVertical(false);
-					game.SpawnNumber();
-					game.checkState();
-					updateScore();
-					gb.repaint();
-
 					break;
 				case KeyEvent.VK_LEFT:
-
 					game.combineGrid(true);
-					game.SpawnNumber();
-					game.checkState();
-					updateScore();
-					gb.repaint();
-
 					break;
 				case KeyEvent.VK_RIGHT:
-
 					game.combineGrid(false);
-					game.SpawnNumber();
-					game.checkState();
-					updateScore();
-					gb.repaint();
-
 					break;
 				}
+				manageGame(game, gb);
+				
 				GameState gs = game.getGameState();
 				if (gs == GameState.LOSE) {
 					frame.getContentPane().remove(gb);
@@ -224,7 +219,7 @@ public class GUI {
 				}
 			} else {
 				if(key == KeyEvent.VK_ENTER) {
-					game = new Game();
+					game = new Game(this.cols,this.rows);
 					frame.getContentPane().remove(((BorderLayout)getLayout()).getLayoutComponent(BorderLayout.CENTER));
 					frame.getContentPane().add(gb);
 					gb.repaint();

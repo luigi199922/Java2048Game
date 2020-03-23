@@ -3,12 +3,16 @@ package com.lpreciado.java2048;
 import java.util.*;
 
 public class Game {
+	private final int rowLength;
+	private final int colLength;
 	private int[][] board;
 	private int Score;
 	private GameState state;
 
-	public Game() {
-		this.board = new int[4][4];
+	public Game(int row, int col) {
+		this.board = new int[row][col];
+		this.rowLength = row;
+		this.colLength = col;
 		SpawnNumber();
 		SpawnNumber();
 		SpawnNumber();
@@ -17,12 +21,18 @@ public class Game {
 	}
 	
 	public void resetGame() {
-		this.board = new int[4][4];
+		this.board = new int[this.rowLength][this.colLength];
 		SpawnNumber();
 		SpawnNumber();
 		SpawnNumber();
 		this.Score = 0;
 		this.state = GameState.CONTINUE;
+	}
+	public int getRows() {
+		return this.rowLength;
+	}
+	public int getColumns() {
+		return this.colLength;
 	}
 
 	public void setBoard(int[][] board) {
@@ -50,7 +60,7 @@ public class Game {
 		}
 	}
 
-	public boolean checkFor2048() {
+	private boolean checkFor2048() {
 		for (int row = 0; row < this.board.length; row++) {
 			for (int col = 0; col < this.board[row].length; col++) {
 				if (this.board[row][col] == 2048) {
@@ -61,7 +71,7 @@ public class Game {
 		return false;
 	}
 
-	public boolean checkBoardFull() {
+	private boolean checkBoardFull() {
 		for (int row = 0; row < this.board.length; row++) {
 			for (int col = 0; col < this.board[row].length; col++) {
 				if (this.board[row][col] == 0) {
@@ -72,7 +82,7 @@ public class Game {
 		return true;
 	}
 
-	public boolean checkHasMoves() {
+	private boolean checkHasMoves() {
 		for (int row = 0; row < this.board.length; row++) {
 			for (int col = 0; col < this.board[row].length; col++) {
 				
