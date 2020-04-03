@@ -28,9 +28,11 @@ public class Game {
 		this.Score = 0;
 		this.state = GameState.CONTINUE;
 	}
+	
 	public int getRows() {
 		return this.rowLength;
 	}
+	
 	public int getColumns() {
 		return this.colLength;
 	}
@@ -149,7 +151,7 @@ public class Game {
 		}
 	}
 
-	private static boolean validateValue(int val, int maxPowerOfTwo) {
+	private boolean validateValue(int val, int maxPowerOfTwo) {
 		if (val >= 0 && (val & val - 1) == 0 && val <= maxPowerOfTwo) {
 			return true;
 		} else {
@@ -157,7 +159,7 @@ public class Game {
 		}
 	}
 
-	private static boolean validateRow(int[] row) {
+	private boolean validateRow(int[] row) {
 		int max = 2048;
 		for (int i = 0; i < row.length; i++) {
 			if (!validateValue(row[i], max)) {
@@ -167,137 +169,92 @@ public class Game {
 		return true;
 	}
 
-	private int[] ColumnToArray(int columnNumber) {
-		int[] arr = new int[this.board.length];
-		for (int row = 0; row < this.board.length; row++) {
-			arr[row] = this.board[row][columnNumber];
-		}
-
-		return arr;
-	}
-
-	private void ArrayToColumn(int[] arr, int columnNumber) {
-
-		for (int row = 0; row < this.board.length; row++) {
-			for (int col = 0; col < this.board[row].length; col++) {
-				if (col == columnNumber) {
-					this.board[row][col] = arr[row];
-				}
-			}
-		}
-
-	}
-
-	private boolean Shift(int[] row, boolean Left) {
+	private boolean moveLeft(int[] row) {
 		if (!validateRow(row)) {
 			return false;
 		}
-		if (Left) {
-			for (int i = 0; i < row.length; i++) {
-				if (row[i] != 0) {
-					for (int j = 0; j < i; j++) {
-						if (row[j] == 0) {
-							int temp = row[i];
-							row[i] = row[j];
-							row[j] = temp;
-						}
+		for (int i = 0; i < row.length; i++) {
+			if (row[i] != 0) {
+				for (int j = 0; j < i; j++) {
+					if (row[j] == 0) {
+						int temp = row[i];
+						row[i] = row[j];
+						row[j] = temp;
 					}
 				}
 			}
-		} else {
-			for (int i = row.length - 1; i > 0; i--) {
-				if (row[i] == 0) {
-					for (int j = i; j >= 0; j--) {
-						if (row[j] != 0) {
-							int temp = row[i];
-							row[i] = row[j];
-							row[j] = temp;
-							break;
-						}
-					}
-				}
-			}
-
 		}
-
 		return true;
 	}
+	//NEW
+	private int[] combineLeft(int[] row) {
 
-	private boolean combine(int[] row, boolean Left) {
-
-		if (!Shift(row, Left)) {
-			return false;
+		if (!moveLeft(row)) {
+			return row;
 		}
 
 		int length = row.length;
 
-		if (Left) {
-			for (int i = 0; i < length; i++) {
-				int second = i + 1;
-				if ((length - 1) >= second) {
-					if (row[i] == row[second] && row[i] != 0) {
-						int sum = row[i] * 2;
-						this.Score += row[i];
-						row[i] = sum;
-						row[second] = 0;
-						++i;
-					} else if (row[i] == 0) {
-						break;
-					}
-
-				} else {
+		for (int i = 0; i < length; i++) {
+			int second = i + 1; //second is the index of the next number in array
+			if ((length - 1) >= second) { // if we have reached the end of array
+				if (row[i] == row[second] && row[i] != 0) { //
+					int sum = row[i] * 2;
+					row[i] = sum;
+					row[second] = 0;
+					++i;
+				} else if (row[i] == 0) {
 					break;
 				}
-			}
-		} else {
-			for (int i = length - 1; i > 0; i--) {
-				int second = i - 1;
-				if (0 <= second) {
-					if (row[i] == row[second] && row[i] != 0) {
-						int sum = row[i] * 2;
-						this.Score += row[i];
-						row[i] = sum;
-						row[second] = 0;
-						--i;
-					} else if (row[i] == 0) {
-						break;
-					}
 
-				} else {
-					break;
-				}
-			}
-
-		}
-		Shift(row, Left);
-		return true;
-	}
-
-	public boolean combineGrid(boolean Left) {
-		for (int row = 0; row < this.board.length; row++) {
-			if (!combine(this.board[row], Left)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	public boolean combineGridVertical(boolean Up) {
-		for (int col = 0; col < this.board.length; col++) {
-			// convert to array
-			// Shift Accordingly
-			// convert to board
-			int[] arr = ColumnToArray(col);
-			if (Up) {
-				combine(arr, true);
 			} else {
-				combine(arr, false);
+				break;
 			}
-			ArrayToColumn(arr, col);
-		}
 
-		return true;
+		}
+		moveLeft(row);
+		return row;
 	}
+	//NEW
+	private int[][] combineLeft(int[][] b) {
+		int[][] result = new int[b.length][b[0].length];
+		for (int row = 0; row < result.length; row++) {
+			result[row] = combineLeft(b[row]);
+		}
+		return result;
+	}
+	//NEW
+	private int[][] rotateLeft(int[][] b) {
+		int rowLengthOld = b[0].length;
+
+		int[][] result = new int[b[0].length][b.length];
+		for (int row = 0; row < result.length; row++) {
+			for (int col = 0; col < result[row].length; col++) {
+				result[row][col] = b[col][rowLengthOld - 1 - row];
+			}
+		}
+		return result;
+	}
+	//NEW
+	public void left() {
+		board = combineLeft(board);
+	}
+	//NEW
+	public void right() {
+		int[][] result = rotateLeft(rotateLeft(combineLeft(rotateLeft(rotateLeft(board)))));
+		board =  result;
+	}
+	//NEW
+	public void up() {
+		int[][] result = rotateLeft(rotateLeft(rotateLeft(combineLeft(rotateLeft(board)))));
+		board =  result;
+	}
+	//NEW
+	public void down() {
+		int[][] result = rotateLeft(combineLeft(rotateLeft(rotateLeft(rotateLeft(board)))));
+		board =  result;
+	}
+
 
 	public void SpawnNumber() {
 		if (checkBoardFull()) {

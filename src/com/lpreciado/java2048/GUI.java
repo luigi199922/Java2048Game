@@ -189,16 +189,16 @@ public class GUI {
 			if (game.getGameState() == GameState.CONTINUE) {
 				switch (key) {
 				case (KeyEvent.VK_UP):
-					game.combineGridVertical(true);
+					game.up();
 					break;
 				case KeyEvent.VK_DOWN:
-					game.combineGridVertical(false);
+					game.down();
 					break;
 				case KeyEvent.VK_LEFT:
-					game.combineGrid(true);
+					game.left();
 					break;
 				case KeyEvent.VK_RIGHT:
-					game.combineGrid(false);
+					game.right();
 					break;
 				}
 				manageGame(game, gb);
